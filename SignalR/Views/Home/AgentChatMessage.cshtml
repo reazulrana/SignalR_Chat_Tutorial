@@ -1,0 +1,79 @@
+﻿
+
+<input id="message" name="message"/>
+<input type="button" onclick="sendMessageToClient()" id="sendmessage" value="Send Message" />
+<ul id="messages">
+
+
+</ul>
+
+
+
+
+@section Scripts{
+    <script src="~/lib/microsoft-signalr/signalr.js"></script>
+
+    <script>
+
+        const connection = new signalR.HubConnectionBuilder().withUrl("/messages").build();
+
+
+
+        $(document).ready(function () {
+
+
+
+
+            connection.on("AgentGroup", function (message) {
+                var messages = $("#messages");
+                var li = "<li>" + message + "</li>"
+                $(messages).append(li);
+                //const li = document.createElement("li");
+                //li.textContent = message;
+                //document.getElementById("messages").appendChild(li);
+            })
+
+
+            connection.start().catch(function (err) {
+                return console.error(err.toString());
+            });
+
+
+
+            $("#sendmessage").click(function () {
+
+                var method = "SendMessageToAgent";
+
+                var message = $("#message").val();
+                var group = $("#group").find("option:selected").text();
+
+
+
+
+                if (group.toLowerCase() == "every one") {
+
+                } else if (group.toLowerCase() == "myself") {
+                    method = "sendtocaller"
+
+                }
+                connection.invoke(method, message).catch(function (err) {
+                    return console.error(err.toString());
+                });
+
+
+           
+
+            })
+
+
+
+        })
+
+
+     
+    </script>
+
+
+
+
+}
