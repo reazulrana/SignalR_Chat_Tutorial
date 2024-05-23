@@ -1,12 +1,15 @@
 ﻿
 <select id="group">
-    <option>Every One</option>
-    <option>Myself</option>
+    <option value="EveryOne">Every One</option>
+    <option value="Myself">Myself</option>
 </select>
 <input id="message" name="message" />
 <input type="button" onclick="sendMessageToClient()" id="sendmessage" value="Send Message" />
 <ul id="messages">
 </ul>
+
+<label type="text" id="userid" ></label>
+<button id="btnSendRequest">Send Request</button>
 
 
 
@@ -17,69 +20,83 @@
     <script>
 
 
-   
+
         const connection = new signalR.HubConnectionBuilder().withUrl("/messages").build();
 
 
 
 
-   
+
 
         $(document).ready(function () {
 
-  
 
+
+
+
+            connection.on("UserConnected", function (connectionid) {
+                var conn = "<option value='" + connectionid + "'>" + connectionid + "</option>"
+                $("#group").append(conn)
+                $("#userid").text(connectionid);
+
+            })
+
+            connection.on("UserDisconnected", function (connectionid) {
+                $('#group option').each(function () {
+                    if ($(this).val() == connectionid) {
+                        $(this).remove();
+                    }
+                });
+            })
 
             connection.on("AgentGroup", function (message) {
                 var messages = $("#messages");
                 var li = "<li>" + message + "</li>"
                 $(messages).append(li);
-                //const li = document.createElement("li");
-                //li.textContent = message;
-                //document.getElementById("messages").appendChild(li);
+   
             })
-
 
             connection.start().catch(function (err) {
                 return console.error(err.toString());
             });
 
-
-
             $("#sendmessage").click(function () {
-
-                var method = "SendMessageToAgent";
-
+                var method = "SendMessageToAll";
                 var message = $("#message").val();
                 var group = $("#group").find("option:selected").text();
 
-
-
-
                 if (group.toLowerCase() == "every one") {
-                 
+                    connection.invoke(method, message).catch(function (err) {
+                        return console.error(err.toString());
+                    });
                 } else if (group.toLowerCase() == "myself") {
-                    method = "sendtocaller"
-               
+                    method = "SendToCaller"
+                    connection.invoke(method, message).catch(function (err) {
+                        return console.error(err.toString());
+                    });
                 }
-                connection.invoke(method, message).catch(function (err) {
-                    return console.error(err.toString());
-                });
+                else
+                {
+                    method = "SendMessageToUser"
+                    connection.invoke(method, group, message).catch(function (err)
+                    {
+                        return console.error(err.toString());
+                    });
+                }
+             
 
-        
-                ////const agent = document.getElementById("agentInput").value;
-                //const message = document.getElementById("message").value;
-                ////const connectionId = document.getElementById("clientConnectionId").value;
-                //connection.invoke("SendMessageToAgent", message).catch(function (err) {
-                //    return console.error(err.toString());
-                //});
+                $("#btnSendRequest").click(function () {
+                    var id = $("#userid").text();
+                    connection.invoke("JoinGroup", id).catch(function (err) {
+                        return console.error(err.toString());
+                    });
 
-                //connection.invoke("sendtocaller", message).catch(function (err) {
-                //    return console.error(err.toString());
-                //});
+
+                })
+
 
             })
-     
+
 
 
         })

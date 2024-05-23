@@ -21,9 +21,6 @@
 
         $(document).ready(function () {
 
-
-
-
             connection.on("AgentGroup", function (message) {
                 var messages = $("#messages");
                 var li = "<li>" + message + "</li>"
@@ -59,9 +56,6 @@
                 connection.invoke(method, message).catch(function (err) {
                     return console.error(err.toString());
                 });
-
-
-           
 
             })
 
