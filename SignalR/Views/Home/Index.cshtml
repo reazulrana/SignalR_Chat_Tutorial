@@ -10,10 +10,12 @@
 
 <label type="text" id="userid" ></label>
 <button id="btnSendRequest">Send Request</button>
+<div id="userequest">
+
+</div>
 
 
-
-
+<button type="button" id="btnAcceptRequest">Acccept Request</button>
 @section Scripts{
     <script src="~/lib/microsoft-signalr/signalr.js"></script>
 
@@ -31,7 +33,15 @@
         $(document).ready(function () {
 
 
+            connection.on("singleuser", function (connectionid, message, types) {
+                if (types == "s") {
+                    var d = $("#userequest")
 
+                    $("#userequest").append("")
+
+                }
+
+            })
 
 
             connection.on("UserConnected", function (connectionid) {
