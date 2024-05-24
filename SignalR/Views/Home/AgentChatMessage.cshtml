@@ -1,12 +1,18 @@
 ﻿
-
-<input id="message" name="message"/>
+<select id="group">
+    <option value="EveryOne">Every One</option>
+    <option value="Myself">Myself</option>
+</select>
+<input id="message" name="message" />
 <input type="button" onclick="sendMessageToClient()" id="sendmessage" value="Send Message" />
 <ul id="messages">
-
-
 </ul>
 
+<label type="text" id="userid"></label>
+<button id="btnSendRequest">Send Request</button>
+<div id="userequest">
+
+</div>
 
 
 
@@ -14,48 +20,79 @@
     <script src="~/lib/microsoft-signalr/signalr.js"></script>
 
     <script>
-
         const connection = new signalR.HubConnectionBuilder().withUrl("/messages").build();
-
-
-
         $(document).ready(function () {
+            connection.on("singleuser", function (connectionid, message, types) {
+                if (types == "s") {
+                    var d = $("#userequest")
+                    var e = "<button type='button' data-id='' id='btnAcceptRequest'>Acccept Request</button>"
+                        
+                    e = e + "<input type='text' id='userid'/>"
+                    $("#userequest").append(e)
+
+                }
+
+            })
+
+
+            connection.on("UserConnected", function (connectionid) {
+                var conn = "<option value='" + connectionid + "'>" + connectionid + "</option>"
+                $("#group").append(conn)
+                $("#userid").text(connectionid);
+
+            })
+
+            connection.on("UserDisconnected", function (connectionid) {
+                $('#group option').each(function () {
+                    if ($(this).val() == connectionid) {
+                        $(this).remove();
+                    }
+                });
+            })
 
             connection.on("AgentGroup", function (message) {
                 var messages = $("#messages");
                 var li = "<li>" + message + "</li>"
                 $(messages).append(li);
-                //const li = document.createElement("li");
-                //li.textContent = message;
-                //document.getElementById("messages").appendChild(li);
-            })
 
+            })
 
             connection.start().catch(function (err) {
                 return console.error(err.toString());
             });
 
-
-
             $("#sendmessage").click(function () {
-
-                var method = "SendMessageToAgent";
-
+                var method = "SendMessageToAll";
                 var message = $("#message").val();
                 var group = $("#group").find("option:selected").text();
 
-
-
-
                 if (group.toLowerCase() == "every one") {
-
+                    connection.invoke(method, message).catch(function (err) {
+                        return console.error(err.toString());
+                    });
                 } else if (group.toLowerCase() == "myself") {
-                    method = "sendtocaller"
-
+                    method = "SendToCaller"
+                    connection.invoke(method, message).catch(function (err) {
+                        return console.error(err.toString());
+                    });
                 }
-                connection.invoke(method, message).catch(function (err) {
-                    return console.error(err.toString());
-                });
+                else {
+                    method = "SendMessageToUser"
+                    connection.invoke(method, group, message).catch(function (err) {
+                        return console.error(err.toString());
+                    });
+                }
+
+
+                $("#btnSendRequest").click(function () {
+                    var id = $("#userid").text();
+                    connection.invoke("JoinGroup", id).catch(function (err) {
+                        return console.error(err.toString());
+                    });
+
+
+                })
+
 
             })
 
@@ -64,7 +101,6 @@
         })
 
 
-     
     </script>
 
 

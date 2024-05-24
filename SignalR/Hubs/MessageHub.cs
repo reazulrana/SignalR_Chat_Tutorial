@@ -25,9 +25,9 @@ namespace SignalR.Hubs
             return Clients.All.SendAsync("AgentGroup", message);
         }
 
-        public Task SendMessageToUser(string connectionid, string message,string type)
+        public Task SendMessageToUser(string connectionid, string message,string ut)
         {
-            return Clients.Client(connectionid).SendAsync("singleuser", message, type);
+            return Clients.Client(connectionid).SendAsync("singleuser", message, ut);
         }
 
 
@@ -51,6 +51,12 @@ namespace SignalR.Hubs
         }
 
 
+
+        public string GetConnectionId()
+        {
+
+            return Context.ConnectionId;
+        }
 
     }
 }

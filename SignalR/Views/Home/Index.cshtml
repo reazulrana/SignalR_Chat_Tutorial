@@ -8,14 +8,14 @@
 <ul id="messages">
 </ul>
 
-<label type="text" id="userid" ></label>
-<button id="btnSendRequest">Send Request</button>
+<label id="userid" ></label>
+<input type="text" id="sendrequestid" />
+<input type="button" id="btnSendRequest" onclick="JoinGroup()" value="Send Request"/>
 <div id="userequest">
 
 </div>
 
 
-<button type="button" id="btnAcceptRequest">Acccept Request</button>
 @section Scripts{
     <script src="~/lib/microsoft-signalr/signalr.js"></script>
 
@@ -33,12 +33,21 @@
         $(document).ready(function () {
 
 
-            connection.on("singleuser", function (connectionid, message, types) {
-                if (types == "s") {
+            $("#userequest").on("click", "#btnAcceptRequest", function () {
+
+
+                alert("OK");
+
+            });
+
+
+            connection.on("singleuser", function (message, ut) {
+                if (ut == "s") {
                     var d = $("#userequest")
+                    var e = "<button type='button' data-id='' id='btnAcceptRequest'>Acccept Request</button>"
 
-                    $("#userequest").append("")
-
+                    e = e + "<input type='text' id='userid'/>"
+                    $("#userequest").append(e)
                 }
 
             })
@@ -47,7 +56,6 @@
             connection.on("UserConnected", function (connectionid) {
                 var conn = "<option value='" + connectionid + "'>" + connectionid + "</option>"
                 $("#group").append(conn)
-                $("#userid").text(connectionid);
 
             })
 
@@ -66,9 +74,14 @@
    
             })
 
-            connection.start().catch(function (err) {
-                return console.error(err.toString());
-            });
+            connection.start()
+                .then(() => connection.invoke("GetConnectionId"))
+                .then((connectionid) => {
+                    $("#userid").text(connectionid);
+                }).catch(function (err) {
+                    return console.error(err.toString());
+                });
+
 
             $("#sendmessage").click(function () {
                 var method = "SendMessageToAll";
@@ -93,16 +106,9 @@
                         return console.error(err.toString());
                     });
                 }
-             
 
-                $("#btnSendRequest").click(function () {
-                    var id = $("#userid").text();
-                    connection.invoke("JoinGroup", id).catch(function (err) {
-                        return console.error(err.toString());
-                    });
-
-
-                })
+       
+       
 
 
             })
@@ -111,6 +117,26 @@
 
         })
 
+
+        function JoinGroup() {
+
+//            <label id="userid" ></label>
+            //<input type="text" id="sendrequestid" />
+            var u = $("#userid").text();
+            var s = $("#sendrequestid").val();
+            var group= u + "u_s" + s
+            var t = "s";
+            
+            connection.invoke("JoinGroup", group).catch(function (err) {
+                        return console.error(err.toString());
+            });
+
+            connection.invoke("SendMessageToUser", s, group,t).catch(function (err) {
+                return console.error(err.toString());
+            });
+
+            
+        }
 
     </script>
 
