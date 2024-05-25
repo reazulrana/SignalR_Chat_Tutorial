@@ -2,9 +2,14 @@
 <select id="group">
     <option value="EveryOne">Every One</option>
     <option value="Myself">Myself</option>
+    <option value="user">user</option>
+
 </select>
 <input id="message" name="message" />
-<input type="button" onclick="sendMessageToClient()" id="sendmessage" value="Send Message" />
+@*<input type="button" onclick="sendMessageToClient()" id="sendmessage" value="Send Message" />*@
+<input type="button" id="sendmessage" value="Send Message" />
+<input id="txtrequsetgroupid" type="text" />
+
 <ul id="messages">
 </ul>
 
@@ -36,7 +41,7 @@
             $("#userequest").on("click", "#btnAcceptRequest", function () {
 
 
-                alert("OK");
+                AcceptRequset();
 
             });
 
@@ -46,7 +51,7 @@
                     var d = $("#userequest")
                     var e = "<button type='button' data-id='' id='btnAcceptRequest'>Acccept Request</button>"
 
-                    e = e + "<input type='text' id='userid'/>"
+                    e = e + "<input type='text' id='groupid' value='" + message + "'/>"
                     $("#userequest").append(e)
                 }
 
@@ -74,6 +79,15 @@
    
             })
 
+            connection.on("gruopuser", function (message) {
+                var messages = $("#messages");
+                var li = "<li>" + message + "</li>"
+                $(messages).append(li);
+
+            })
+
+            
+
             connection.start()
                 .then(() => connection.invoke("GetConnectionId"))
                 .then((connectionid) => {
@@ -98,13 +112,24 @@
                         return console.error(err.toString());
                     });
                 }
-                else
+                else if (group.toLowerCase() == 'user'.toLowerCase())
                 {
-                    method = "SendMessageToUser"
+                    method = "SendMessageToGroup"
+                    var group = $("#txtrequsetgroupid").val();
+                    //var sp = $("#txtrequsetgroupid").val()
+
                     connection.invoke(method, group, message).catch(function (err)
                     {
                         return console.error(err.toString());
                     });
+                }
+                else 
+                {
+                    //method = "SendMessageToUser"
+                    //connection.invoke(method, sp, message).catch(function (err)
+                    //{
+                    //    return console.error(err.toString());
+                    //});
                 }
 
        
@@ -118,24 +143,40 @@
         })
 
 
+        function AcceptRequset() {
+
+            //var u = $("#userid").text();
+            //var s = $("#sendrequestid").val();
+            var group = $("#groupid").val();
+            $("#txtrequsetgroupid").val(group)
+            //var t = "s";
+
+            connection.invoke("JoinGroup", group).catch(function (err) {
+                return console.error(err.toString());
+            });
+
+            //connection.invoke("SendMessageToUser", s, group, t).catch(function (err) {
+            //    return console.error(err.toString());
+            //});
+        }
+
+
         function JoinGroup() {
 
-//            <label id="userid" ></label>
-            //<input type="text" id="sendrequestid" />
+
             var u = $("#userid").text();
             var s = $("#sendrequestid").val();
             var group= u + "u_s" + s
             var t = "s";
-            
+            $("#txtrequsetgroupid").val(group)
+
             connection.invoke("JoinGroup", group).catch(function (err) {
                         return console.error(err.toString());
             });
 
-            connection.invoke("SendMessageToUser", s, group,t).catch(function (err) {
+            connection.invoke("SendMessageToUser", s, group, t).catch(function (err) {
                 return console.error(err.toString());
             });
-
-            
         }
 
     </script>

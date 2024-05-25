@@ -37,7 +37,7 @@ namespace SignalR.Hubs
         }
         public Task SendMessageToGroup(string group, string message)
         {
-            return Clients.Group(group).SendAsync("AgentGroup", message);
+            return Clients.Group(group).SendAsync("gruopuser", message);
         }
         public override async Task OnConnectedAsync()
         {
